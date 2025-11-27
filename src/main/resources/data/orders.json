@@ -1,0 +1,13 @@
+[ {
+  "id" : 1,
+  "buyerId" : 2,
+  "items" : [ {
+    "id" : 2,
+    "productId" : 3,
+    "quantity" : 5,
+    "unitPrice" : 249.99
+  } ],
+  "totalAmount" : 1249.95,
+  "date" : [ 2025, 11, 27, 19, 2, 42, 787462088 ],
+  "status" : "PAID"
+} ]

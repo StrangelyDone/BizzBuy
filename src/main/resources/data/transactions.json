@@ -1,0 +1,10 @@
+[ {
+  "id" : 1,
+  "txnId" : "a12324f0-91fb-4673-8d5d-b1b3d2be1dd6",
+  "payerId" : 2,
+  "payeeId" : 1,
+  "amount" : 1249.95,
+  "status" : "SUCCESS",
+  "timestamp" : [ 2025, 11, 27, 19, 2, 42, 786547542 ],
+  "reference" : "Retail checkout"
+} ]
