@@ -72,7 +72,7 @@ public class UserController {
     public ResponseEntity<?> wallet(@RequestHeader("X-USER") String username) {
         try {
             User current = userService.requireByUsername(username);
-            Wallet wallet = walletService.getWallet(current.getId());
+            Wallet wallet = walletService.initWallet(current.getId());
             return ResponseEntity.ok(wallet);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             Map<String, String> error = new HashMap<>();
@@ -137,4 +137,5 @@ public class UserController {
         }
     }
 }
+
 
