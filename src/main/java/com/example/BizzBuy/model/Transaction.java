@@ -1,49 +1,45 @@
-package com.example.BizzBuy.service;
+package com.example.BizzBuy.model;
 
-import com.example.BizzBuy.model.Transaction;
-import com.example.BizzBuy.util.IdGenerator;
-import com.example.BizzBuy.util.JsonFileManager;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
-@Service
-@RequiredArgsConstructor
-public class TransactionService {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Transaction {
 
-    private static final String TRANSACTIONS_FILE = "transactions.json";
-    private final JsonFileManager fileManager;
-
-    public Transaction log(Long payerId, Long payeeId, double amount, String reference) {
-        List<Transaction> transactions = new ArrayList<>(fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
-
-        Transaction transaction = Transaction.successful(payerId, payeeId, amount, reference);
-        transaction.setId(IdGenerator.nextId(transactions));
-        transaction.setTimestamp(LocalDateTime.now());
-        transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
-
-        transactions.add(transaction);
-        fileManager.writeList(TRANSACTIONS_FILE, transactions);
-        return transaction;
+    public enum TransactionStatus {
+        PENDING,
+        SUCCESS,
+        FAILED
     }
 
-    public List<Transaction> findByUser(Long userId) {
-        List<Transaction> all = new ArrayList<> (fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
-        List<Transaction> result = new ArrayList<> ();
+    private Long id;
+    private String txnId;
+    private Long payerId;
+    private Long payeeId;
+    private Double amount;
+    private TransactionStatus status;
+    private LocalDateTime timestamp;
+    private String reference;
 
-        for(Transaction tx : all){
-                if(tx.getPayerId().equals(userId) || tx.getPayeeId().equals(userId)){
-                        result.add(tx);
-                }
+    public static Transaction successful(Long payerId, Long payeeId, Double amount, String reference) {
+    return new Transaction(
+            null,
+            UUID.randomUUID().toString(),
+            payerId,
+            payeeId,
+            amount,
+            TransactionStatus.SUCCESS,
+            LocalDateTime.now(),
+            reference
+    );
         }
-        return result;
-    }
-
-    public List<Transaction> findAll() {
-        return new ArrayList<>(fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
-    }
 }
 
