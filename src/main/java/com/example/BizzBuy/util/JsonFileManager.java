@@ -10,11 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.ArrayList;
+
 
 @Component
 @RequiredArgsConstructor
@@ -22,37 +20,7 @@ public class JsonFileManager {
 
     private final ObjectMapper objectMapper;
     @Value("${app.data-directory:src/main/resources/data}")
-    private String dataDirectory;
-    private final Map<String, ReentrantReadWriteLock> locks = new ConcurrentHashMap<>();
-
-    public <T> List<T> readList(String fileName, Class<T> clazz) {
-        ReentrantReadWriteLock lock = locks.computeIfAbsent(fileName, k -> new ReentrantReadWriteLock());
-        lock.readLock().lock();
-        try {
-            Path path = resolvePath(fileName);
-            ensureFileExists(path);
-            JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, clazz);
-            return objectMapper.readValue(path.toFile(), type);
-        } catch (IOException e) {
-            return Collections.emptyList();
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    public <T> void writeList(String fileName, List<T> data) {
-        ReentrantReadWriteLock lock = locks.computeIfAbsent(fileName, k -> new ReentrantReadWriteLock());
-        lock.writeLock().lock();
-        try {
-            Path path = resolvePath(fileName);
-            ensureFileExists(path);
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), data);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to write data file: " + fileName, e);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
+    private String dataDirectory;   // this stores the location of the folder where all the json files are there as a string
 
     private Path resolvePath(String fileName) throws IOException {
         Path dir = Paths.get(dataDirectory);
@@ -65,8 +33,35 @@ public class JsonFileManager {
     private void ensureFileExists(Path path) throws IOException {
         if (!Files.exists(path)) {
             Files.createFile(path);
-            Files.write(path, "[]".getBytes());
+            Files.write(path, "[]".getBytes()); // prevents object mapper from crashing if json file is empty
         }
     }
+
+    public <T> List<T> readList(String fileName, Class<T> class_name) {      //Without generics, you would have to write a separate method for every single class you want to save
+
+        try {
+            Path path = resolvePath(fileName);
+            ensureFileExists(path);
+            JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, class_name); // to get the object type
+            return objectMapper.readValue(path.toFile(), type); // this is what main thing is
+        } catch (IOException e) {
+            System.out.println("Error reading " + fileName + ": " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+
+    public <T> void writeList(String fileName, List<T> data) {
+
+        try {
+            Path path = resolvePath(fileName);
+            ensureFileExists(path);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), data);
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Failed to save data to file: " + fileName, e);
+        }
+    }
+
 }
 
