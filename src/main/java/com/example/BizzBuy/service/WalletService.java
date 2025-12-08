@@ -1,105 +1,51 @@
 package com.example.BizzBuy.service;
 
 import com.example.BizzBuy.model.Wallet;
-import com.example.BizzBuy.util.JsonFileManager;
+import com.example.BizzBuy.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class WalletService {
 
-    private static final String WALLETS_FILE = "wallets.json";
-    private final JsonFileManager fileManager;
+        private final WalletRepository walletRepository;
 
-    public Wallet initWallet(Long userId) {
-        List<Wallet> wallets = new ArrayList<>(fileManager.readList(WALLETS_FILE, Wallet.class));
+        public Wallet initWallet(Long userId) {
+                return walletRepository.findById(userId)
+                                .orElseGet(() -> createWallet(userId));
+        }
 
-        Wallet foundWallet = null;
+        private Wallet createWallet(Long userId) {
+                Wallet wallet = new Wallet(userId, 0.0, "USD");
+                return walletRepository.save(wallet);
+        }
 
-        for(Wallet wallet : wallets){
-                if(wallet.getUserId().equals(userId)){
-                        foundWallet = wallet;
-                        break;
+        public Wallet addFunds(Long userId, Double amount) {
+                Wallet wallet = walletRepository.findById(userId)
+                                .orElseGet(() -> createWallet(userId));
+
+                wallet.setBalance(wallet.getBalance() + amount);
+                return walletRepository.save(wallet);
+        }
+
+        public void deduct(Long userId, double amount) {
+                Wallet wallet = walletRepository.findById(userId)
+                                .orElseThrow(() -> new IllegalStateException("Wallet not found"));
+
+                if (wallet.getBalance() < amount) {
+                        throw new IllegalStateException("Insufficient funds");
                 }
-        }
-        if(foundWallet != null){
-                return foundWallet;
-        }
-        return createWallet(userId, wallets);
-    }
 
-    private Wallet createWallet(Long userId, List<Wallet> wallets) {
-        Wallet wallet = new Wallet(userId, 0.0, "USD");
-        wallets.add(wallet);
-        fileManager.writeList(WALLETS_FILE, wallets);
-        return wallet;
-    }
-
-    public Wallet addFunds(Long userId, Double amount) {
-        List<Wallet> wallets = new ArrayList<>(fileManager.readList(WALLETS_FILE, Wallet.class));
-
-        Wallet foundWallet = null;
-        for(Wallet w : wallets){
-                if(w.getUserId().equals(userId)){
-                        foundWallet = w;
-                        break;
-                }
-        }
-        if(foundWallet == null){
-                foundWallet = createWallet(userId,wallets);
-        }
-        foundWallet.setBalance(foundWallet.getBalance() + amount);
-        fileManager.writeList(WALLETS_FILE,wallets);
-
-        return foundWallet;
-
-    }
-
-    public void deduct(Long userId, double amount) {
-        List<Wallet> wallets = new ArrayList<>(fileManager.readList(WALLETS_FILE, Wallet.class));
-
-        Wallet foundWallet = null;
-
-        for(Wallet w : wallets){
-                if(w.getUserId().equals(userId)){
-                        foundWallet = w;
-                        break;
-                }
+                wallet.setBalance(wallet.getBalance() - amount);
+                walletRepository.save(wallet);
         }
 
-        if (foundWallet == null) {
-                throw new IllegalStateException("Wallet not found");
+        public void credit(Long userId, double amount) {
+                Wallet wallet = walletRepository.findById(userId)
+                                .orElseGet(() -> createWallet(userId));
+
+                wallet.setBalance(wallet.getBalance() + amount);
+                walletRepository.save(wallet);
         }
-
-        if (foundWallet.getBalance() < amount) {
-                throw new IllegalStateException("Insufficient funds");
-        }
-
-        foundWallet.setBalance(foundWallet.getBalance() - amount);
-        fileManager.writeList(WALLETS_FILE,wallets);
-
-    }
-
-    public void credit(Long userId, double amount) {
-        List<Wallet> wallets = new ArrayList<>(fileManager.readList(WALLETS_FILE, Wallet.class));
-
-        Wallet foundWallet = null;
-
-        for(Wallet w : wallets){
-                if(w.getUserId().equals(userId)){
-                        foundWallet = w;
-                        break;
-                }
-        }
-
-        if(foundWallet == null){
-                foundWallet = createWallet(userId,wallets);
-        }
-        foundWallet.setBalance(foundWallet.getBalance() + amount);
-        fileManager.writeList(WALLETS_FILE,wallets);
-    }
 }

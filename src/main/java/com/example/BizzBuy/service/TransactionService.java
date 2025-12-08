@@ -1,8 +1,7 @@
 package com.example.BizzBuy.service;
 
 import com.example.BizzBuy.model.Transaction;
-import com.example.BizzBuy.util.IdGenerator;
-import com.example.BizzBuy.util.JsonFileManager;
+import com.example.BizzBuy.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,36 +13,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionService {
 
-    private static final String TRANSACTIONS_FILE = "transactions.json";
-    private final JsonFileManager fileManager;
+    private final TransactionRepository transactionRepository;
+    private final SequenceGeneratorService sequenceGenerator;
 
     public Transaction log(Long payerId, Long payeeId, double amount, String reference) {
-        List<Transaction> transactions = new ArrayList<>(fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
-
         Transaction transaction = Transaction.successful(payerId, payeeId, amount, reference);
-        transaction.setId(IdGenerator.nextId(transactions));
+        transaction.setId(sequenceGenerator.generateSequence("transactions_sequence"));
         transaction.setTimestamp(LocalDateTime.now());
         transaction.setStatus(Transaction.TransactionStatus.SUCCESS);
 
-        transactions.add(transaction);
-        fileManager.writeList(TRANSACTIONS_FILE, transactions);
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
     public List<Transaction> findByUser(Long userId) {
-        List<Transaction> all = new ArrayList<> (fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
-        List<Transaction> result = new ArrayList<> ();
-
-        for(Transaction tx : all){
-                if(tx.getPayerId().equals(userId) || tx.getPayeeId().equals(userId)){
-                        result.add(tx);
-                }
-        }
-        return result;
+        return transactionRepository.findByPayerIdOrPayeeId(userId, userId);
     }
 
     public List<Transaction> findAll() {
-        return new ArrayList<>(fileManager.readList(TRANSACTIONS_FILE, Transaction.class));
+        return transactionRepository.findAll();
     }
 }
-

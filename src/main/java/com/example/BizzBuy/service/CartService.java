@@ -4,8 +4,7 @@ import com.example.BizzBuy.model.Cart;
 import com.example.BizzBuy.model.CartItem;
 import com.example.BizzBuy.model.Order;
 import com.example.BizzBuy.model.Product;
-import com.example.BizzBuy.util.IdGenerator;
-import com.example.BizzBuy.util.JsonFileManager;
+import com.example.BizzBuy.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +17,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CartService {
 
-    private static final String CARTS_FILE = "carts.json";
-
-    private final JsonFileManager fileManager;
+    private final CartRepository cartRepository;
     private final ProductService productService;
     private final WalletService walletService;
     private final TransactionService transactionService;
     private final OrderService orderService;
+    private final SequenceGeneratorService sequenceGenerator;
 
     public Cart getCart(Long userId) {
-        return findAll().stream()
-                .filter(cart -> cart.getUserId().equals(userId))
-                .findFirst()
+        return cartRepository.findByUserId(userId)
                 .orElseGet(() -> createCart(userId));
     }
 
@@ -38,15 +34,9 @@ public class CartService {
         if (product.getStockQuantity() < newItem.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
         }
-        List<Cart> carts = findAll();
-        Cart cart = carts.stream()
-                .filter(c -> c.getUserId().equals(userId))
-                .findFirst()
-                .orElseGet(() -> {
-                    Cart newCart = createCart(userId);
-                    carts.add(newCart);
-                    return newCart;
-                });
+
+        Cart cart = getCart(userId);
+
         if (cart.getItems() == null) {
             cart.setItems(new ArrayList<>());
         }
@@ -57,7 +47,7 @@ public class CartService {
                 .orElse(null);
         if (existing == null) {
             CartItem item = CartItem.builder()
-                    .id(IdGenerator.nextId(cart.getItems()))
+                    .id(sequenceGenerator.generateSequence("cart_item_sequence"))
                     .productId(product.getId())
                     .quantity(newItem.getQuantity())
                     .unitPrice(product.getPrice())
@@ -70,15 +60,11 @@ public class CartService {
             existing.setQuantity(existing.getQuantity() + newItem.getQuantity());
         }
         recalculate(cart);
-        persist(carts);
-        return cart;
+        return cartRepository.save(cart);
     }
 
     public Cart updateItem(Long userId, CartItem updatedItem) {
-        List<Cart> carts = findAll();
-        Cart cart = carts.stream()
-                .filter(c -> c.getUserId().equals(userId))
-                .findFirst()
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
         if (cart.getItems() == null) {
             throw new IllegalArgumentException("Cart has no items");
@@ -89,30 +75,22 @@ public class CartService {
                 .orElseThrow(() -> new IllegalArgumentException("Item not found"));
         item.setQuantity(updatedItem.getQuantity());
         recalculate(cart);
-        persist(carts);
-        return cart;
+        return cartRepository.save(cart);
     }
 
     public Cart removeItem(Long userId, Long itemId) {
-        List<Cart> carts = findAll();
-        Cart cart = carts.stream()
-                .filter(c -> c.getUserId().equals(userId))
-                .findFirst()
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
         if (cart.getItems() == null) {
             cart.setItems(new ArrayList<>());
         }
         cart.getItems().removeIf(item -> item.getId().equals(itemId));
         recalculate(cart);
-        persist(carts);
-        return cart;
+        return cartRepository.save(cart);
     }
 
     public Order checkout(Long userId) {
-        List<Cart> carts = findAll();
-        Cart cart = carts.stream()
-                .filter(c -> c.getUserId().equals(userId))
-                .findFirst()
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
         if (cart.getItems().isEmpty()) {
             throw new IllegalArgumentException("Cart is empty");
@@ -140,29 +118,18 @@ public class CartService {
         Order order = orderService.createOrder(userId, new ArrayList<>(cart.getItems()), total);
         cart.getItems().clear();
         cart.setTotalValue(0.0);
-        persist(carts);
+        cartRepository.save(cart);
         return order;
-    }
-
-    private List<Cart> findAll() {
-        return new ArrayList<>(fileManager.readList(CARTS_FILE, Cart.class));
-    }
-
-    private void persist(List<Cart> carts) {
-        fileManager.writeList(CARTS_FILE, carts);
     }
 
     private Cart createCart(Long userId) {
         Cart cart = Cart.builder()
-                .id(userId)
+                .id(userId) // Using userId as cartId for 1:1 mapping
                 .userId(userId)
                 .items(new ArrayList<>())
                 .totalValue(0.0)
                 .build();
-        List<Cart> carts = findAll();
-        carts.add(cart);
-        persist(carts);
-        return cart;
+        return cartRepository.save(cart);
     }
 
     private void recalculate(Cart cart) {

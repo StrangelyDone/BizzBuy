@@ -1,5 +1,8 @@
 package com.example.BizzBuy.model;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import lombok.*;
 import java.util.List;
 
@@ -7,7 +10,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "products")
 public class Product {
+    @Id
     private Long id;
     private Long sellerId;
     private String name;
@@ -17,5 +22,3 @@ public class Product {
     private Integer stockQuantity;
     private List<String> tags;
 }
-
-

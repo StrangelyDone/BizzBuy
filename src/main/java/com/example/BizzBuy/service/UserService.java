@@ -2,12 +2,10 @@ package com.example.BizzBuy.service;
 
 import com.example.BizzBuy.model.User;
 // Role enum now inlined in User class
-import com.example.BizzBuy.util.IdGenerator;
-import com.example.BizzBuy.util.JsonFileManager;
+import com.example.BizzBuy.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -17,25 +15,20 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserService {
 
-    private static final String USERS_FILE = "users.json";
-
-    private final JsonFileManager fileManager;
+    private final UserRepository userRepository;
+    private final SequenceGeneratorService sequenceGenerator;
 
     public User register(User newUser) {
-        List<User> users = new ArrayList<>(fileManager.readList(USERS_FILE, User.class));
-        Optional<User> existing = users.stream()
-                .filter(user -> user.getUsername().equalsIgnoreCase(newUser.getUsername()))
-                .findFirst();
-        User user;
-        if (existing.isPresent()) {
-            user = existing.get();
-            user.setPassword(newUser.getPassword());
-            user.setEmail(newUser.getEmail());
-            user.setFullName(newUser.getFullName());
+        if (userRepository.existsByUsername(newUser.getUsername())) {
+            User existing = userRepository.findByUsername(newUser.getUsername()).get();
+            existing.setPassword(newUser.getPassword());
+            existing.setEmail(newUser.getEmail());
+            existing.setFullName(newUser.getFullName());
             // Update roles if provided, otherwise keep existing
             if (newUser.getRoles() != null && !newUser.getRoles().isEmpty()) {
-                user.setRoles(newUser.getRoles());
+                existing.setRoles(newUser.getRoles());
             }
+            return userRepository.save(existing);
         } else {
             // Initialize roles for new user
             Set<User.Role> defaultRoles = new HashSet<>();
@@ -46,9 +39,9 @@ public class UserService {
                 defaultRoles.add(User.Role.BUYER);
                 defaultRoles.add(User.Role.SELLER);
             }
-            
-            user = User.builder()
-                    .id(IdGenerator.nextId(users))
+
+            User user = User.builder()
+                    .id(sequenceGenerator.generateSequence("users_sequence"))
                     .username(newUser.getUsername())
                     .password(newUser.getPassword())
                     .email(newUser.getEmail())
@@ -56,38 +49,28 @@ public class UserService {
                     .roles(defaultRoles)
                     .enabled(true)
                     .build();
-            users.add(user);
+            return userRepository.save(user);
         }
-        fileManager.writeList(USERS_FILE, users);
-        return user;
     }
 
     public List<User> findAll() {
-        return new ArrayList<>(fileManager.readList(USERS_FILE, User.class));
+        return userRepository.findAll();
     }
 
     public User updateProfile(Long userId, String email, String fullName) {
-        List<User> users = findAll();
-        User user = users.stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.setEmail(email);
         user.setFullName(fullName);
-        fileManager.writeList(USERS_FILE, users);
-        return user;
+        return userRepository.save(user);
     }
 
     public Optional<User> findByUsername(String username) {
-        return findAll().stream()
-                .filter(user -> user.getUsername().equalsIgnoreCase(username))
-                .findFirst();
+        return userRepository.findByUsername(username);
     }
 
     public User findById(Long id) {
-        return findAll().stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst()
+        return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
@@ -96,4 +79,3 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }
-

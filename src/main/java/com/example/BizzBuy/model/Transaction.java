@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -12,6 +15,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "transactions")
 public class Transaction {
 
     public enum TransactionStatus {
@@ -20,6 +24,7 @@ public class Transaction {
         FAILED
     }
 
+    @Id
     private Long id;
     private String txnId;
     private Long payerId;
@@ -30,16 +35,14 @@ public class Transaction {
     private String reference;
 
     public static Transaction successful(Long payerId, Long payeeId, Double amount, String reference) {
-    return new Transaction(
-            null,
-            UUID.randomUUID().toString(),
-            payerId,
-            payeeId,
-            amount,
-            TransactionStatus.SUCCESS,
-            LocalDateTime.now(),
-            reference
-    );
-        }
+        return new Transaction(
+                null,
+                UUID.randomUUID().toString(),
+                payerId,
+                payeeId,
+                amount,
+                TransactionStatus.SUCCESS,
+                LocalDateTime.now(),
+                reference);
+    }
 }
-
