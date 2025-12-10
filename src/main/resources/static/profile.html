@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - BizzBuy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">My Account</h1>
+
+        <!-- Profile & Wallet -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div id="profile-card" class="bg-white border border-gray-200 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">Profile Information</h2>
+                <div class="text-center py-4 text-gray-500">Loading...</div>
+            </div>
+
+            <div id="wallet-card" class="bg-white border border-orange-300 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">💰 Wallet</h2>
+                <div class="text-center py-4 text-gray-500">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="flex space-x-2 border-b border-gray-300">
+                <button onclick="switchTab('orders')" id="tab-orders"
+                    class="px-4 py-2 font-semibold border-b-2 border-orange-500 text-orange-600">
+                    Orders
+                </button>
+                <button onclick="switchTab('bids')" id="tab-bids"
+                    class="px-4 py-2 font-semibold text-gray-600 hover:text-gray-900">
+                    My Bids
+                </button>
+                <button onclick="switchTab('transactions')" id="tab-transactions"
+                    class="px-4 py-2 font-semibold text-gray-600 hover:text-gray-900">
+                    Transactions
+                </button>
+                <button onclick="switchTab('myproducts')" id="tab-myproducts"
+                    class="px-4 py-2 font-semibold text-gray-600 hover:text-gray-900">
+                    My Products
+                </button>
+                <button onclick="switchTab('myauctions')" id="tab-myauctions"
+                    class="px-4 py-2 font-semibold text-gray-600 hover:text-gray-900">
+                    My Auctions
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content" class="bg-white border border-gray-200 rounded-lg p-6">
+            <div class="text-center py-4 text-gray-500">Loading...</div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        protectPage();
+
+        let currentTab = 'orders';
+
+        async function loadProfile() {
+            try {
+                const profile = await UserAPI.getProfile();
+                document.getElementById('profile-card').innerHTML = `
+                    <h2 class="text-xl font-bold mb-4">Profile Information</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-sm text-gray-600">Username</div>
+                            <div class="font-semibold">${profile.username}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Full Name</div>
+                            <div class="font-semibold">${profile.fullName}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600">Email</div>
+                            <div class="font-semibold">${profile.email}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function loadWallet() {
+            try {
+                const wallet = await UserAPI.getWallet();
+                document.getElementById('wallet-card').innerHTML = `
+                    <h2 class="text-xl font-bold mb-4">💰 Wallet</h2>
+                    <div class="text-4xl font-bold text-orange-600 mb-6">${formatCurrency(wallet.balance)}</div>
+                    <form id="addFundsForm" class="flex gap-2">
+                        <input type="number" id="fundAmount" step="0.01" min="0.01" placeholder="Amount" required
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                        <button type="submit" class="bg-yellow-400 hover:bg-yellow-500 px-6 py-2 rounded font-semibold transition">
+                            Add Funds
+                        </button>
+                    </form>
+                `;
+
+                document.getElementById('addFundsForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const amount = parseFloat(document.getElementById('fundAmount').value);
+
+                    try {
+                        showLoading();
+                        await UserAPI.addFunds(amount);
+                        hideLoading();
+                        showToast('Funds added successfully!', 'success');
+                        loadWallet();
+                    } catch (error) {
+                        hideLoading();
+                        showToast(error.message || 'Failed to add funds', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading wallet:', error);
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const orders = await UserAPI.getOrders();
+                const content = document.getElementById('tab-content');
+
+                if (orders.length === 0) {
+                    content.innerHTML = '<p class="text-gray-500 text-center py-12">No orders yet</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        ${orders.map(order => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <div class="font-semibold">Order #${order.id}</div>
+                                        <div class="text-sm text-gray-600">${formatDate(order.date)}</div>
+                                    </div>
+                                    <span class="px-3 py-1 rounded text-xs font-semibold ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                        order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                    }">${order.status}</span>
+                                </div>
+                                <div class="text-2xl font-bold text-orange-600">${formatCurrency(order.totalAmount)}</div>
+                                <div class="text-sm text-gray-600 mt-2">${order.items.length} item(s)</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('tab-content').innerHTML = '<p class="text-red-500 text-center py-12">Failed to load orders</p>';
+            }
+        }
+
+        async function loadBids() {
+            try {
+                const bids = await BidsAPI.getMyBids();
+                const content = document.getElementById('tab-content');
+
+                if (bids.length === 0) {
+                    content.innerHTML = '<p class="text-gray-500 text-center py-12">No bids yet</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        ${bids.map(bid => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-semibold">Auction #${bid.auctionId}</div>
+                                        <div class="text-sm text-gray-600">${formatDate(bid.timestamp)}</div>
+                                    </div>
+                                    <div class="text-2xl font-bold text-orange-600">${formatCurrency(bid.amount)}</div>
+                                </div>
+                                <a href="/auction-detail.html?id=${bid.auctionId}" class="text-blue-600 hover:underline text-sm mt-2 inline-block">
+                                    View Auction →
+                                </a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('tab-content').innerHTML = '<p class="text-red-500 text-center py-12">Failed to load bids</p>';
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const transactions = await UserAPI.getTransactions();
+                const content = document.getElementById('tab-content');
+
+                if (transactions.length === 0) {
+                    content.innerHTML = '<p class="text-gray-500 text-center py-12">No transactions yet</p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        ${transactions.map(tx => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="font-semibold">Transaction #${tx.id}</div>
+                                        <div class="text-sm text-gray-600">${formatDate(tx.timestamp)}</div>
+                                    </div>
+                                    <span class="px-3 py-1 rounded text-xs font-semibold ${tx.status === 'SUCCESS' ? 'bg-green-100 text-green-800' :
+                        tx.status === 'FAILED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                    }">${tx.status}</span>
+                                </div>
+                                <div class="text-2xl font-bold text-orange-600">${formatCurrency(tx.amount)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('tab-content').innerHTML = '<p class="text-red-500 text-center py-12">Failed to load transactions</p>';
+            }
+        }
+
+        async function loadMyProducts() {
+            try {
+                const products = await ProductsAPI.getAll();
+                const userId = (await UserAPI.getProfile()).id;
+                const myProducts = products.filter(p => p.sellerId === userId);
+                const content = document.getElementById('tab-content');
+
+                if (myProducts.length === 0) {
+                    content.innerHTML = '<p class="text-gray-500 text-center py-12">No products yet. <a href="/seller-dashboard.html" class="text-blue-600 hover:underline">Create one</a></p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${myProducts.map(product => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h3 class="font-semibold mb-2">${product.name}</h3>
+                                <p class="text-sm text-gray-600 mb-2">${product.description || 'No description'}</p>
+                                <div class="text-lg font-bold text-orange-600 mb-2">${formatCurrency(product.price)}</div>
+                                <div class="text-sm text-gray-600 mb-3">Stock: ${product.stockQuantity}</div>
+                                ${product.isAuction ? '<div class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">In Auction</div>' : ''}
+                                <button onclick="deleteProduct(${product.id})" 
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded font-medium transition">
+                                    Delete Product
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('tab-content').innerHTML = '<p class="text-red-500 text-center py-12">Failed to load products</p>';
+            }
+        }
+
+        async function loadMyAuctions() {
+            try {
+                const auctions = await AuctionsAPI.getAll();
+                const userId = (await UserAPI.getProfile()).id;
+                const myAuctions = auctions.filter(a => a.sellerId === userId);
+                const content = document.getElementById('tab-content');
+
+                if (myAuctions.length === 0) {
+                    content.innerHTML = '<p class="text-gray-500 text-center py-12">No auctions yet. <a href="/create-auction.html" class="text-blue-600 hover:underline">Create one</a></p>';
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${myAuctions.map(auction => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="font-semibold">Auction #${auction.id}</div>
+                                    <span class="px-2 py-1 rounded text-xs font-semibold ${auction.status === 'LIVE' ? 'bg-red-600 text-white' : auction.status === 'SCHEDULED' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}">${auction.status}</span>
+                                </div>
+                                <div class="text-sm text-gray-600 mb-2">Product #${auction.itemId}</div>
+                                <div class="text-lg font-bold text-orange-600 mb-2">${formatCurrency(auction.currentPrice)}</div>
+                                <div class="text-xs text-gray-600 mb-3">
+                                    <div>Starts: ${formatDate(auction.startTime)}</div>
+                                    <div>Ends: ${formatDate(auction.endTime)}</div>
+                                </div>
+                                ${auction.status === 'SCHEDULED' ? `
+                                    <button onclick="cancelAuction(${auction.id})" 
+                                        class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded font-medium transition mb-2">
+                                        Cancel Auction
+                                    </button>
+                                ` : ''}
+                                <a href="/auction-detail.html?id=${auction.id}" 
+                                    class="block w-full bg-blue-500 hover:bg-blue-600 text-white text-center py-2 rounded font-medium transition">
+                                    View Details
+                                </a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('tab-content').innerHTML = '<p class="text-red-500 text-center py-12">Failed to load auctions</p>';
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE_URL}/items/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-USER': getCurrentUser() }
+                });
+                hideLoading();
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete product');
+                }
+
+                showToast('Product deleted successfully!', 'success');
+                loadMyProducts();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to delete product', 'error');
+            }
+        }
+
+        async function cancelAuction(auctionId) {
+            if (!confirm('Are you sure you want to cancel this auction? This can only be done if there are no bids.')) return;
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE_URL}/auctions/${auctionId}/cancel`, {
+                    method: 'DELETE',
+                    headers: { 'X-USER': getCurrentUser() }
+                });
+                hideLoading();
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to cancel auction');
+                }
+
+                showToast('Auction cancelled successfully!', 'success');
+                loadMyAuctions();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to cancel auction', 'error');
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.className = 'px-4 py-2 font-semibold text-gray-600 hover:text-gray-900';
+            });
+            document.getElementById(`tab-${tab}`).className = 'px-4 py-2 font-semibold border-b-2 border-orange-500 text-orange-600';
+
+            if (tab === 'orders') loadOrders();
+            else if (tab === 'bids') loadBids();
+            else if (tab === 'transactions') loadTransactions();
+            else if (tab === 'myproducts') loadMyProducts();
+            else if (tab === 'myauctions') loadMyAuctions();
+        }
+
+        loadProfile();
+        loadWallet();
+        loadOrders();
+    </script>
+</body>
+
+</html>

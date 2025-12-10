@@ -23,6 +23,7 @@ public class CartService {
     private final TransactionService transactionService;
     private final OrderService orderService;
     private final SequenceGeneratorService sequenceGenerator;
+    private final NotificationService notificationService;
 
     public Cart getCart(Long userId) {
         return cartRepository.findByUserId(userId)
@@ -31,6 +32,12 @@ public class CartService {
 
     public Cart addItem(Long userId, CartItem newItem) {
         Product product = productService.getProduct(newItem.getProductId());
+
+        // Prevent sellers from buying their own products
+        if (product.getSellerId().equals(userId)) {
+            throw new IllegalStateException("You cannot buy your own product");
+        }
+
         if (product.getStockQuantity() < newItem.getQuantity()) {
             throw new IllegalArgumentException("Insufficient stock");
         }
@@ -105,16 +112,33 @@ public class CartService {
                 .mapToDouble(item -> item.getUnitPrice() * item.getQuantity())
                 .sum();
         walletService.deduct(userId, total);
+
         Map<Long, Double> sellerTotals = new HashMap<>();
         cart.getItems().forEach(item -> {
             Product product = productService.getProduct(item.getProductId());
             productService.decreaseStock(product.getId(), item.getQuantity());
             sellerTotals.merge(product.getSellerId(), item.getUnitPrice() * item.getQuantity(), Double::sum);
         });
+
         sellerTotals.forEach((sellerId, amount) -> {
             walletService.credit(sellerId, amount);
             transactionService.log(userId, sellerId, amount, "Retail checkout");
+
+            // Notify seller of sale
+            notificationService.create(
+                    sellerId,
+                    "SALE",
+                    String.format("Product sold! $%.2f added to your wallet", amount),
+                    null);
         });
+
+        // Notify buyer of purchase
+        notificationService.create(
+                userId,
+                "PURCHASE",
+                String.format("Purchase successful! $%.2f deducted from your wallet", total),
+                null);
+
         Order order = orderService.createOrder(userId, new ArrayList<>(cart.getItems()), total);
         cart.getItems().clear();
         cart.setTotalValue(0.0);

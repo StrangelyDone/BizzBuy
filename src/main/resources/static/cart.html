@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - BizzBuy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">Shopping Cart</h1>
+
+        <div id="cart-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-gray-500">Loading cart...</div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        protectPage();
+
+        async function loadCart() {
+            try {
+                const cart = await CartAPI.get();
+                const content = document.getElementById('cart-content');
+
+                if (!cart || !cart.items || cart.items.length === 0) {
+                    content.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-6xl mb-4">🛒</div>
+                            <p class="text-gray-500 text-xl mb-6">Your cart is empty</p>
+                            <a href="/products.html" class="inline-block bg-yellow-400 hover:bg-yellow-500 px-6 py-3 rounded font-semibold transition">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                content.innerHTML = `
+                    <div class="lg:col-span-2 space-y-4">
+                        ${cart.items.map(item => {
+                    const price = item.unitPrice || 0;
+                    const quantity = item.quantity || 1;
+                    return `
+                            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-semibold mb-2">Product #${item.productId}</h3>
+                                        <p class="text-2xl font-bold text-orange-600">${formatCurrency(price)}</p>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex items-center border border-gray-300 rounded">
+                                            <button onclick="updateQuantity(${item.productId}, ${quantity - 1})" 
+                                                class="px-3 py-2 hover:bg-gray-100">−</button>
+                                            <span class="px-4 py-2 font-semibold">${quantity}</span>
+                                            <button onclick="updateQuantity(${item.productId}, ${quantity + 1})" 
+                                                class="px-3 py-2 hover:bg-gray-100">+</button>
+                                        </div>
+                                        <button onclick="removeItem(${item.id})" 
+                                            class="text-red-600 hover:text-red-700 font-semibold">
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-right">
+                                    <span class="text-gray-600">Subtotal:</span>
+                                    <span class="text-xl font-bold ml-2">${formatCurrency(price * quantity)}</span>
+                                </div>
+                            </div>
+                        `}).join('')}
+                    </div>
+
+                    <div class="lg:col-span-1">
+                        <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-6">
+                            <h2 class="text-xl font-bold mb-6">Order Summary</h2>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex justify-between text-gray-600">
+                                    <span>Items (${cart.items.reduce((sum, item) => sum + (item.quantity || 1), 0)})</span>
+                                    <span>${formatCurrency(cart.totalValue || 0)}</span>
+                                </div>
+                                <div class="border-t border-gray-300 pt-3">
+                                    <div class="flex justify-between font-bold text-xl">
+                                        <span>Total</span>
+                                        <span class="text-orange-600">${formatCurrency(cart.totalValue || 0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="checkout()" 
+                                class="w-full bg-yellow-400 hover:bg-yellow-500 py-3 rounded font-semibold transition mb-4">
+                                Proceed to Checkout
+                            </button>
+
+                            <a href="/products.html" class="block text-center text-blue-600 hover:underline">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                document.getElementById('cart-content').innerHTML = `
+                    <div class="col-span-full text-center py-12 text-red-500">
+                        ${error.message || 'Failed to load cart'}
+                    </div>
+                `;
+            }
+        }
+
+        async function updateQuantity(productId, newQuantity) {
+            if (newQuantity < 1) {
+                removeItem(productId);
+                return;
+            }
+
+            try {
+                showLoading();
+                await CartAPI.update(productId, newQuantity);
+                hideLoading();
+                loadCart();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to update quantity', 'error');
+            }
+        }
+
+        async function removeItem(productId) {
+            if (!confirm('Remove this item from cart?')) return;
+
+            try {
+                showLoading();
+                await CartAPI.remove(productId);
+                hideLoading();
+                showToast('Item removed from cart', 'success');
+                loadCart();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to remove item', 'error');
+            }
+        }
+
+        async function checkout() {
+            if (!confirm('Proceed with checkout? Amount will be deducted from your wallet.')) return;
+
+            try {
+                showLoading();
+                await CartAPI.checkout();
+                hideLoading();
+                showToast('Order placed successfully!', 'success');
+                setTimeout(() => window.location.href = '/profile.html', 2000);
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Checkout failed. Please ensure you have sufficient wallet balance.', 'error');
+            }
+        }
+
+        loadCart();
+    </script>
+</body>
+
+</html>

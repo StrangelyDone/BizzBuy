@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizzBuy - Online Shopping & Auctions</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="search" id="searchInput" placeholder="Search products and auctions..."
+                        class="w-full px-4 py-2 rounded text-gray-900 focus:outline-none">
+                </div>
+
+                <div id="auth-links" class="flex items-center space-x-4 text-sm">
+                    <a href="/login.html" class="hover:underline">Sign In</a>
+                    <a href="/register.html" class="hover:underline">Register</a>
+                </div>
+
+                <div id="user-links" class="hidden flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/create-product.html" class="hover:underline">🏪 Sell Product</a>
+                    <a href="/create-auction.html" class="hover:underline">🔨 Create Auction</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+
+                    <!-- Notifications Bell -->
+                    <div class="relative">
+                        <button id="notif-bell" onclick="toggleNotifications()" class="relative hover:text-yellow-400">
+                            🔔
+                            <span id="notif-badge"
+                                class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"></span>
+                        </button>
+
+                        <!-- Notifications Dropdown -->
+                        <div id="notif-dropdown"
+                            class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="font-bold text-gray-900">Notifications</h3>
+                                <button onclick="markAllRead()" class="text-xs text-blue-600 hover:underline">Mark all
+                                    read</button>
+                            </div>
+                            <div id="notif-list" class="max-h-96 overflow-y-auto">
+                                <div class="p-4 text-center text-gray-500">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Hero Banner -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 mb-6">
+            <h1 class="text-4xl font-bold mb-2">Welcome to BizzBuy</h1>
+            <p class="text-xl">Shop products or bid on exclusive auctions</p>
+        </div>
+
+        <!-- Live Auctions Section -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">🔥 Live Auctions</h2>
+                <a href="/auctions.html" class="text-blue-600 hover:text-orange-600 hover:underline">See all
+                    auctions</a>
+            </div>
+            <div id="auctions-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="col-span-full text-center py-12 text-gray-500">Loading auctions...</div>
+            </div>
+        </div>
+
+        <!-- Featured Products Section -->
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Featured Products</h2>
+                <a href="/products.html" class="text-blue-600 hover:text-orange-600 hover:underline">See all
+                    products</a>
+            </div>
+            <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div class="col-span-full text-center py-12 text-gray-500">Loading products...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm">&copy; 2024 BizzBuy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        async function loadAuctions() {
+            try {
+                const auctions = await AuctionsAPI.getActive();
+                const grid = document.getElementById('auctions-grid');
+
+                if (auctions.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No active auctions</div>';
+                    return;
+                }
+
+                grid.innerHTML = auctions.slice(0, 4).map(auction => `
+                    <div class="bg-white border border-orange-300 rounded-lg p-4 hover:shadow-lg transition">
+                        <span class="inline-block bg-red-600 text-white text-xs px-2 py-1 rounded mb-2">LIVE</span>
+                        <div class="text-sm text-gray-600 mb-1">Product #${auction.itemId}</div>
+                        <div class="text-2xl font-bold text-orange-600 mb-2">${formatCurrency(auction.currentPrice)}</div>
+                        <div class="text-sm text-gray-600 mb-3">
+                            <div>Starting: ${formatCurrency(auction.startingPrice)}</div>
+                            <div id="timer-${auction.id}" class="font-semibold text-red-600"></div>
+                        </div>
+                        <a href="/auction-detail.html?id=${auction.id}" 
+                            class="block w-full bg-yellow-400 hover:bg-yellow-500 text-center py-2 rounded font-medium transition">
+                            Place Bid
+                        </a>
+                    </div>
+                `).join('');
+
+                auctions.slice(0, 4).forEach(auction => {
+                    startCountdown(`timer-${auction.id}`, auction.endTime, () => loadAuctions());
+                });
+            } catch (error) {
+                console.error('Error loading auctions:', error);
+                document.getElementById('auctions-grid').innerHTML =
+                    '<div class="col-span-full text-center py-12 text-red-500">Failed to load auctions</div>';
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const products = await ProductsAPI.getAll();
+                const grid = document.getElementById('products-grid');
+
+                if (products.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products available</div>';
+                    return;
+                }
+
+                grid.innerHTML = products.slice(0, 10).map(product => `
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                        <div class="bg-gray-100 h-40 rounded mb-3 flex items-center justify-center text-4xl">
+                            🛍️
+                        </div>
+                        <h3 class="font-medium text-sm mb-2 line-clamp-2">${product.name}</h3>
+                        <div class="text-xl font-bold text-orange-600 mb-2">${formatCurrency(product.price)}</div>
+                        <div class="text-xs text-gray-600 mb-3">Stock: ${product.stockQuantity}</div>
+                        <button onclick="addToCart(${product.id})" 
+                            ${product.stockQuantity === 0 ? 'disabled' : ''}
+                            class="w-full ${product.stockQuantity === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500'} py-2 rounded font-medium transition">
+                            ${product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('products-grid').innerHTML =
+                    '<div class="col-span-full text-center py-12 text-red-500">Failed to load products</div>';
+            }
+        }
+
+        async function addToCart(productId) {
+            if (!isLoggedIn()) {
+                showToast('Please sign in to add items to cart', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 1500);
+                return;
+            }
+
+            try {
+                await CartAPI.add(productId, 1);
+                showToast('Added to cart!', 'success');
+            } catch (error) {
+                showToast(error.message || 'Failed to add to cart', 'error');
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', debounce(async (e) => {
+            const keyword = e.target.value.trim();
+            if (keyword) {
+                try {
+                    const products = await ProductsAPI.search(keyword);
+                    const grid = document.getElementById('products-grid');
+                    if (products.length === 0) {
+                        grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products found</div>';
+                    } else {
+                        loadProducts();
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            } else {
+                loadProducts();
+            }
+        }, 500));
+
+        // Notification Functions
+        async function loadNotifications() {
+            if (!isLoggedIn()) return;
+
+            try {
+                const data = await NotificationsAPI.getUnreadCount();
+                const badge = document.getElementById('notif-badge');
+                if (data.count > 0) {
+                    badge.textContent = data.count > 9 ? '9+' : data.count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading notification count:', error);
+            }
+        }
+
+        async function toggleNotifications() {
+            const dropdown = document.getElementById('notif-dropdown');
+            dropdown.classList.toggle('hidden');
+
+            if (!dropdown.classList.contains('hidden')) {
+                await displayNotifications();
+            }
+        }
+
+        async function displayNotifications() {
+            const list = document.getElementById('notif-list');
+            list.innerHTML = '\u003cdiv class=\"p-4 text-center text-gray-500\"\u003eLoading...\u003c/div\u003e';
+
+            try {
+                const notifications = await NotificationsAPI.getAll();
+
+                if (notifications.length === 0) {
+                    list.innerHTML = '\u003cdiv class=\"p-4 text-center text-gray-500\"\u003eNo notifications\u003c/div\u003e';
+                    return;
+                }
+
+                list.innerHTML = notifications.slice(0, 10).map(notif => `
+                    \u003cdiv class="${notif.read ? 'bg-white' : 'bg-blue-50'} p-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                         onclick="markNotifRead(${notif.id})"\u003e
+                        \u003cdiv class="flex items-start justify-between"\u003e
+                            \u003cdiv class="flex-1"\u003e
+                                \u003cdiv class="text-sm font-semibold text-gray-900"\u003e${getNotifIcon(notif.type)} ${notif.type}\u003c/div\u003e
+                                \u003cdiv class="text-sm text-gray-700 mt-1"\u003e${notif.message}\u003c/div\u003e
+                                \u003cdiv class="text-xs text-gray-500 mt-1"\u003e${formatDate(notif.timestamp)}\u003c/div\u003e
+                            \u003c/div\u003e
+                            ${!notif.read ? '\u003cspan class="w-2 h-2 bg-blue-600 rounded-full"\u003e\u003c/span\u003e' : ''}
+                        \u003c/div\u003e
+                    \u003c/div\u003e
+                `).join('');
+            } catch (error) {
+                list.innerHTML = '\u003cdiv class=\"p-4 text-center text-red-500\"\u003eFailed to load notifications\u003c/div\u003e';
+            }
+        }
+
+        function getNotifIcon(type) {
+            const icons = {
+                'PURCHASE': '🛒',
+                'SALE': '💰',
+                'BID': '🔨',
+                'OUTBID': '⚠️',
+                'BID_WON': '🎉'
+            };
+            return icons[type] || '📢';
+        }
+
+        async function markNotifRead(id) {
+            try {
+                await NotificationsAPI.markAsRead(id);
+                await displayNotifications();
+                await loadNotifications();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async function markAllRead() {
+            try {
+                await NotificationsAPI.markAllAsRead();
+                await displayNotifications();
+                await loadNotifications();
+                showToast('All notifications marked as read', 'success');
+            } catch (error) {
+                showToast('Failed to mark notifications as read', 'error');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notif-dropdown');
+            const bell = document.getElementById('notif-bell');
+            if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        loadAuctions();
+        loadProducts();
+        setInterval(loadAuctions, 30000);
+
+        // Load notifications if logged in
+        if (isLoggedIn()) {
+            loadNotifications();
+            setInterval(loadNotifications, 30000); // Refresh every 30 seconds
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - BizzBuy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">Seller Dashboard</h1>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="flex space-x-2 border-b border-gray-300">
+                <button onclick="switchTab('product')" id="tab-product"
+                    class="px-4 py-2 font-semibold border-b-2 border-orange-500 text-orange-600">
+                    Create Product
+                </button>
+                <button onclick="switchTab('auction')" id="tab-auction"
+                    class="px-4 py-2 font-semibold text-gray-600 hover:text-gray-900">
+                    Create Auction
+                </button>
+            </div>
+        </div>
+
+        <!-- Create Product Form -->
+        <div id="product-form" class="bg-white border border-gray-200 rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-6">Create New Product</h2>
+            <form id="createProductForm" class="space-y-4">
+                <div>
+                    <label for="productName" class="block text-sm font-bold mb-1">Product Name</label>
+                    <input type="text" id="productName" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+
+                <div>
+                    <label for="productDescription" class="block text-sm font-bold mb-1">Description</label>
+                    <textarea id="productDescription" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="productPrice" class="block text-sm font-bold mb-1">Price ($)</label>
+                        <input type="number" id="productPrice" step="0.01" min="0.01" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                    <div>
+                        <label for="productStock" class="block text-sm font-bold mb-1">Stock Quantity</label>
+                        <input type="number" id="productStock" min="1" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="productTags" class="block text-sm font-bold mb-1">Tags (comma separated)</label>
+                    <input type="text" id="productTags" placeholder="electronics, gadgets, sale"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded transition">
+                    Create Product
+                </button>
+            </form>
+        </div>
+
+        <!-- Create Auction Form -->
+        <div id="auction-form" class="hidden bg-white border border-gray-200 rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-6">Create New Auction</h2>
+            <form id="createAuctionForm" class="space-y-4">
+                <div>
+                    <label for="auctionProductId" class="block text-sm font-bold mb-1">Product ID</label>
+                    <input type="number" id="auctionProductId" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    <p class="text-xs text-gray-600 mt-1">Enter the ID of the product you want to auction</p>
+                </div>
+
+                <div>
+                    <label for="startingPrice" class="block text-sm font-bold mb-1">Starting Price ($)</label>
+                    <input type="number" id="startingPrice" step="0.01" min="0.01" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="startTime" class="block text-sm font-bold mb-1">Start Time</label>
+                        <input type="datetime-local" id="startTime" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                    <div>
+                        <label for="endTime" class="block text-sm font-bold mb-1">End Time</label>
+                        <input type="datetime-local" id="endTime" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded transition">
+                    Create Auction
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        protectPage();
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.className = 'px-4 py-2 font-semibold text-gray-600 hover:text-gray-900';
+            });
+            document.getElementById(`tab-${tab}`).className = 'px-4 py-2 font-semibold border-b-2 border-orange-500 text-orange-600';
+
+            // Show/hide forms
+            if (tab === 'product') {
+                document.getElementById('product-form').classList.remove('hidden');
+                document.getElementById('auction-form').classList.add('hidden');
+            } else if (tab === 'auction') {
+                document.getElementById('product-form').classList.add('hidden');
+                document.getElementById('auction-form').classList.remove('hidden');
+            }
+        }
+
+        // Check URL parameter to open specific tab
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'auction') {
+            switchTab('auction');
+        } else {
+            switchTab('product'); // Default to product tab
+        }
+
+        // Create Product
+        document.getElementById('createProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const tags = document.getElementById('productTags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0);
+
+            const productData = {
+                name: document.getElementById('productName').value.trim(),
+                description: document.getElementById('productDescription').value.trim(),
+                price: parseFloat(document.getElementById('productPrice').value),
+                stockQuantity: parseInt(document.getElementById('productStock').value),
+                tags: tags,
+                isAuction: false
+            };
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE_URL}/items/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-USER': getCurrentUser()
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                hideLoading();
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create product');
+                }
+
+                const product = await response.json();
+                showToast(`Product created successfully! ID: ${product.id}`, 'success');
+                document.getElementById('createProductForm').reset();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to create product', 'error');
+            }
+        });
+
+        // Create Auction
+        document.getElementById('createAuctionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const startTime = new Date(document.getElementById('startTime').value).toISOString();
+            const endTime = new Date(document.getElementById('endTime').value).toISOString();
+
+            if (new Date(endTime) <= new Date(startTime)) {
+                showToast('End time must be after start time', 'error');
+                return;
+            }
+
+            const auctionData = {
+                itemId: parseInt(document.getElementById('auctionProductId').value),
+                startingPrice: parseFloat(document.getElementById('startingPrice').value),
+                startTime: startTime,
+                endTime: endTime
+            };
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE_URL}/auctions/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-USER': getCurrentUser()
+                    },
+                    body: JSON.stringify(auctionData)
+                });
+
+                hideLoading();
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create auction');
+                }
+
+                const auction = await response.json();
+                showToast(`Auction created successfully! ID: ${auction.id}`, 'success');
+                document.getElementById('createAuctionForm').reset();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to create auction', 'error');
+            }
+        });
+
+        // Set minimum datetime to now (in IST)
+        const now = new Date();
+        // Convert to IST by adjusting for timezone offset
+        // IST is UTC+5:30, so we need to account for that
+        const istOffset = 330; // IST offset in minutes (5 hours 30 minutes)
+        const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes
+        const offsetDiff = istOffset + localOffset; // Difference to adjust
+
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Convert to UTC
+        const minDateTime = now.toISOString().slice(0, 16);
+        document.getElementById('startTime').min = minDateTime;
+        document.getElementById('endTime').min = minDateTime;
+    </script>
+</body>
+
+</html>

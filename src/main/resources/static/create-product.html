@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Product - BizzBuy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-6">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold mb-2">Create Product</h1>
+            <p class="text-gray-600">List a new product for sale</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-lg p-6">
+            <form id="createProductForm" class="space-y-4">
+                <div>
+                    <label for="productName" class="block text-sm font-bold mb-1">Product Name</label>
+                    <input type="text" id="productName" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+
+                <div>
+                    <label for="productDescription" class="block text-sm font-bold mb-1">Description</label>
+                    <textarea id="productDescription" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="productPrice" class="block text-sm font-bold mb-1">Price ($)</label>
+                        <input type="number" id="productPrice" step="0.01" min="0.01" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                    <div>
+                        <label for="productStock" class="block text-sm font-bold mb-1">Stock Quantity</label>
+                        <input type="number" id="productStock" min="1" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="productTags" class="block text-sm font-bold mb-1">Tags (comma separated)</label>
+                    <input type="text" id="productTags" placeholder="electronics, gadgets, sale"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded transition">
+                    Create Product
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        protectPage();
+
+        document.getElementById('createProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const tags = document.getElementById('productTags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0);
+
+            const productData = {
+                name: document.getElementById('productName').value.trim(),
+                description: document.getElementById('productDescription').value.trim(),
+                price: parseFloat(document.getElementById('productPrice').value),
+                stockQuantity: parseInt(document.getElementById('productStock').value),
+                tags: tags,
+                isAuction: false
+            };
+
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE_URL}/items/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-USER': getCurrentUser()
+                    },
+                    body: JSON.stringify(productData)
+                });
+
+                hideLoading();
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to create product');
+                }
+
+                const product = await response.json();
+                showToast(`Product created successfully! ID: ${product.id}`, 'success');
+                document.getElementById('createProductForm').reset();
+            } catch (error) {
+                hideLoading();
+                showToast(error.message || 'Failed to create product', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

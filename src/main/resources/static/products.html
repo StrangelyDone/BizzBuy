@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - BizzBuy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="search" id="searchInput" placeholder="Search products..."
+                        class="w-full px-4 py-2 rounded text-gray-900 focus:outline-none">
+                </div>
+                <div id="auth-links" class="flex items-center space-x-4 text-sm">
+                    <a href="/login.html" class="hover:underline">Sign In</a>
+                </div>
+                <div id="user-links" class="hidden flex items-center space-x-4 text-sm">
+                    <a href="/auctions.html" class="hover:underline">Auctions</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">All Products</h1>
+
+        <!-- Filters -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1">Min Price</label>
+                    <input type="number" id="minPrice" placeholder="$0" step="0.01"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">Max Price</label>
+                    <input type="number" id="maxPrice" placeholder="$1000" step="0.01"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="applyFilters()"
+                        class="w-full bg-yellow-400 hover:bg-yellow-500 py-2 rounded font-medium">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="col-span-full text-center py-12 text-gray-500">Loading products...</div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        let allProducts = [];
+        let currentUserId = null;
+
+        async function loadProducts() {
+            try {
+                allProducts = await ProductsAPI.getAll();
+
+                // Get current user ID if logged in
+                if (isLoggedIn()) {
+                    try {
+                        const profile = await UserAPI.getProfile();
+                        currentUserId = profile.id;
+                    } catch (error) {
+                        console.error('Error getting user profile:', error);
+                    }
+                }
+
+                displayProducts(allProducts);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('products-grid').innerHTML =
+                    '<div class="col-span-full text-center py-12 text-red-500">Failed to load products</div>';
+            }
+        }
+
+        function displayProducts(products) {
+            const grid = document.getElementById('products-grid');
+
+            // Filter out auction products - they should only appear in auctions section
+            const regularProducts = products.filter(product => !product.isAuction);
+
+            if (regularProducts.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products found</div>';
+                return;
+            }
+
+            grid.innerHTML = regularProducts.map(product => {
+                const isOwnProduct = currentUserId && product.sellerId === currentUserId;
+                const isOutOfStock = product.stockQuantity === 0;
+
+                return `
+                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                    <div class="bg-gray-100 h-48 rounded mb-3 flex items-center justify-center text-5xl">
+                        🛍️
+                    </div>
+                    <h3 class="font-medium text-sm mb-2 h-10 overflow-hidden">${product.name}</h3>
+                    <p class="text-xs text-gray-600 mb-2 h-8 overflow-hidden">${product.description || 'No description'}</p>
+                    <div class="text-xl font-bold text-orange-600 mb-2">${formatCurrency(product.price)}</div>
+                    <div class="text-xs text-gray-600 mb-3">
+                        ${product.stockQuantity > 0 ? `Stock: ${product.stockQuantity}` : '<span class="text-red-600">Out of Stock</span>'}
+                    </div>
+                    ${isOwnProduct ? `
+                        <div class="w-full bg-gray-200 text-gray-700 text-center py-2 rounded font-medium">
+                            Your Product
+                        </div>
+                    ` : `
+                        <button onclick="addToCart(${product.id})" 
+                            ${isOutOfStock ? 'disabled' : ''}
+                            class="w-full ${isOutOfStock ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500'} py-2 rounded font-medium transition">
+                            ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                        </button>
+                    `}
+                </div>
+            `}).join('');
+        }
+
+        async function addToCart(productId) {
+            if (!isLoggedIn()) {
+                showToast('Please sign in to add items to cart', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 1500);
+                return;
+            }
+
+            try {
+                await CartAPI.add(productId, 1);
+                showToast('Added to cart!', 'success');
+            } catch (error) {
+                showToast(error.message || 'Failed to add to cart', 'error');
+            }
+        }
+
+        async function applyFilters() {
+            const min = document.getElementById('minPrice').value;
+            const max = document.getElementById('maxPrice').value;
+
+            if (min || max) {
+                try {
+                    const products = await ProductsAPI.filter(min || null, max || null, null);
+                    displayProducts(products);
+                } catch (error) {
+                    console.error('Filter error:', error);
+                    showToast('Failed to apply filters', 'error');
+                }
+            } else {
+                displayProducts(allProducts);
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', debounce(async (e) => {
+            const keyword = e.target.value.trim();
+            if (keyword) {
+                try {
+                    const products = await ProductsAPI.search(keyword);
+                    displayProducts(products);
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            } else {
+                displayProducts(allProducts);
+            }
+        }, 500));
+
+        loadProducts();
+    </script>
+</body>
+
+</html>

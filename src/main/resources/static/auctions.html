@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auctions - BizzBuy</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div id="auth-links" class="flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/login.html" class="hover:underline">Sign In</a>
+                </div>
+                <div id="user-links" class="hidden flex items-center space-x-4 text-sm">
+                    <a href="/products.html" class="hover:underline">Products</a>
+                    <a href="/cart.html" class="hover:underline">🛒 Cart</a>
+                    <a href="/profile.html" class="hover:underline">👤 <span id="nav-username"></span></a>
+                    <button onclick="logout()" class="hover:underline">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">Auctions</h1>
+
+        <!-- Status Filters -->
+        <div class="flex space-x-2 mb-6">
+            <button onclick="filterAuctions('all')" id="filter-all"
+                class="px-4 py-2 bg-yellow-400 text-gray-900 rounded font-medium">All</button>
+            <button onclick="filterAuctions('LIVE')" id="filter-LIVE"
+                class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Live</button>
+            <button onclick="filterAuctions('SCHEDULED')" id="filter-SCHEDULED"
+                class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Scheduled</button>
+            <button onclick="filterAuctions('ENDED')" id="filter-ENDED"
+                class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Ended</button>
+        </div>
+
+        <!-- Auctions Grid -->
+        <div id="auctions-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div class="col-span-full text-center py-12 text-gray-500">Loading auctions...</div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        let allAuctions = [];
+        let currentFilter = 'all';
+
+        async function loadAuctions() {
+            try {
+                allAuctions = await AuctionsAPI.getAll();
+                displayAuctions();
+            } catch (error) {
+                console.error('Error loading auctions:', error);
+                document.getElementById('auctions-grid').innerHTML =
+                    '<div class="col-span-full text-center py-12 text-red-500">Failed to load auctions</div>';
+            }
+        }
+
+        function displayAuctions() {
+            const filtered = currentFilter === 'all'
+                ? allAuctions
+                : allAuctions.filter(a => a.status === currentFilter);
+
+            const grid = document.getElementById('auctions-grid');
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No auctions found</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(auction => `
+                <div class="bg-white border ${auction.status === 'LIVE' ? 'border-orange-300' : 'border-gray-200'} rounded-lg p-4 hover:shadow-lg transition">
+                    <span class="inline-block ${auction.status === 'LIVE' ? 'bg-red-600' :
+                    auction.status === 'SCHEDULED' ? 'bg-blue-600' :
+                        'bg-gray-600'
+                } text-white text-xs px-2 py-1 rounded mb-2">${auction.status}</span>
+                    <div class="text-sm text-gray-600 mb-1">Product #${auction.itemId}</div>
+                    <div class="text-2xl font-bold text-orange-600 mb-2">${formatCurrency(auction.currentPrice)}</div>
+                    <div class="text-xs text-gray-600 mb-3">
+                        Starting: ${formatCurrency(auction.startingPrice)}
+                    </div>
+                    ${auction.status === 'LIVE' ? `
+                        <div class="text-sm mb-3">
+                            <div class="text-gray-600">Ends in:</div>
+                            <div id="timer-${auction.id}" class="font-bold text-red-600"></div>
+                        </div>
+                    ` : auction.winnerId ? `
+                        <div class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mb-3">
+                            🏆 Winner: User #${auction.winnerId}
+                        </div>
+                    ` : ''}
+                    <a href="/auction-detail.html?id=${auction.id}" 
+                        class="block w-full bg-yellow-400 hover:bg-yellow-500 text-center py-2 rounded font-medium transition">
+                        View Details
+                    </a>
+                </div>
+            `).join('');
+
+            filtered.filter(a => a.status === 'LIVE').forEach(auction => {
+                startCountdown(`timer-${auction.id}`, auction.endTime, () => loadAuctions());
+            });
+        }
+
+        function filterAuctions(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+                btn.className = 'px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50';
+            });
+            document.getElementById(`filter-${filter}`).className = 'px-4 py-2 bg-yellow-400 text-gray-900 rounded font-medium';
+
+            displayAuctions();
+        }
+
+        loadAuctions();
+        setInterval(loadAuctions, 30000);
+    </script>
+</body>
+
+</html>

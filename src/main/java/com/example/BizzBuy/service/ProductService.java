@@ -148,4 +148,22 @@ public class ProductService {
         p.setStockQuantity(p.getStockQuantity() - quantity);
         productRepository.save(p);
     }
+
+    public Product updateProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    public void deleteProduct(Long productId, Long sellerId) {
+        Product product = getProduct(productId);
+
+        if (!product.getSellerId().equals(sellerId)) {
+            throw new IllegalArgumentException("Only the product owner can delete this product");
+        }
+
+        if (product.getIsAuction()) {
+            throw new IllegalStateException("Cannot delete a product that is in an auction");
+        }
+
+        productRepository.deleteById(productId);
+    }
 }

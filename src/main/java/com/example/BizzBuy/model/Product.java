@@ -20,5 +20,7 @@ public class Product {
     private List<String> images;
     private Double price;
     private Integer stockQuantity;
+    @Builder.Default
+    private Boolean isAuction = false;
     private List<String> tags;
 }
