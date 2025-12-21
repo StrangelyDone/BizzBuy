@@ -97,10 +97,16 @@
         document.getElementById('createAuctionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const startTime = new Date(document.getElementById('startTime').value).toISOString();
-            const endTime = new Date(document.getElementById('endTime').value).toISOString();
+            // Get datetime values and format as LocalDateTime (YYYY-MM-DDTHH:mm:ss)
+            // Don't convert to ISO/UTC - keep as local IST time
+            const startTimeInput = document.getElementById('startTime').value;
+            const endTimeInput = document.getElementById('endTime').value;
 
-            if (new Date(endTime) <= new Date(startTime)) {
+            // Format: "2025-12-10T19:35" -> "2025-12-10T19:35:00"
+            const startTime = startTimeInput + ':00';
+            const endTime = endTimeInput + ':00';
+
+            if (new Date(endTimeInput) <= new Date(startTimeInput)) {
                 showToast('End time must be after start time', 'error');
                 return;
             }

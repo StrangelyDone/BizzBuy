@@ -16,13 +16,16 @@ public class BidService {
     private final AuctionRepository auctionRepository;
     private final SequenceGeneratorService sequenceGenerator;
     private final NotificationService notificationService;
+    private final UserService userService;
 
     public BidService(BidRepository bidRepository, AuctionRepository auctionRepository,
-            SequenceGeneratorService sequenceGenerator, NotificationService notificationService) {
+            SequenceGeneratorService sequenceGenerator, NotificationService notificationService,
+            UserService userService) {
         this.bidRepository = bidRepository;
         this.auctionRepository = auctionRepository;
         this.sequenceGenerator = sequenceGenerator;
         this.notificationService = notificationService;
+        this.userService = userService;
     }
 
     public Bid placeBid(Long auctionId, Long bidderId, Double bidAmount) {
@@ -61,6 +64,17 @@ public class BidService {
         auction.setCurrentPrice(bidAmount);
         auctionRepository.save(auction);
 
+        // Get bidder's username for notifications
+        // FIX: Use a temporary variable and then assign to a final variable
+        // to ensure it is "effectively final" for the lambda below.
+        String tempUsername;
+        try {
+            tempUsername = userService.findById(bidderId).getUsername();
+        } catch (Exception e) {
+            tempUsername = "User #" + bidderId;
+        }
+        final String bidderUsername = tempUsername;
+
         // Get all previous bidders for this auction
         List<Bid> previousBids = bidRepository.findByAuctionIdOrderByAmountDesc(auctionId);
 
@@ -73,7 +87,8 @@ public class BidService {
                     notificationService.create(
                             previousBidderId,
                             "OUTBID",
-                            String.format("You've been outbid on auction #%d! New bid: $%.2f", auctionId, bidAmount),
+                            String.format("%s outbid you on auction #%d! New bid: $%.2f", bidderUsername, auctionId,
+                                    bidAmount),
                             auctionId);
                 });
 
@@ -81,14 +96,14 @@ public class BidService {
         notificationService.create(
                 auction.getSellerId(),
                 "BID",
-                String.format("New bid of $%.2f placed on your auction #%d", bidAmount, auctionId),
+                String.format("%s placed a bid of $%.2f on your auction #%d", bidderUsername, bidAmount, auctionId),
                 auctionId);
 
         // Notify current bidder of successful bid
         notificationService.create(
                 bidderId,
                 "BID",
-                String.format("Bid placed successfully! Amount: $%.2f on auction #%d", bidAmount, auctionId),
+                String.format("You placed a bid successfully! Amount: $%.2f on auction #%d", bidAmount, auctionId),
                 auctionId);
 
         return bid;

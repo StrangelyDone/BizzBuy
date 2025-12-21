@@ -15,6 +15,10 @@
         <div class="max-w-7xl mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
                 <a href="/index.html" class="text-2xl font-bold">BizzBuy</a>
+                <div class="flex-1 max-w-2xl mx-8">
+                    <input type="search" id="searchInput" placeholder="Search auctions..."
+                        class="w-full px-4 py-2 rounded text-gray-900 focus:outline-none">
+                </div>
                 <div id="auth-links" class="flex items-center space-x-4 text-sm">
                     <a href="/products.html" class="hover:underline">Products</a>
                     <a href="/login.html" class="hover:underline">Sign In</a>
@@ -97,7 +101,7 @@
                         </div>
                     ` : auction.winnerId ? `
                         <div class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded mb-3">
-                            🏆 Winner: User #${auction.winnerId}
+                            🏆 Winner: ${auction.winnerUsername || 'User #' + auction.winnerId}
                         </div>
                     ` : ''}
                     <a href="/auction-detail.html?id=${auction.id}" 
@@ -122,6 +126,23 @@
 
             displayAuctions();
         }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', debounce(async (e) => {
+            const keyword = e.target.value.trim();
+            if (keyword) {
+                try {
+                    const response = await fetch(`/api/search/auctions?q=${encodeURIComponent(keyword)}`);
+                    const searchResults = await response.json();
+                    allAuctions = searchResults;
+                    displayAuctions();
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            } else {
+                loadAuctions();
+            }
+        }, 500));
 
         loadAuctions();
         setInterval(loadAuctions, 30000);

@@ -1,0 +1,1494 @@
+{
+	"info": {
+		"_postman_id": "4c7e8f11-d004-488b-b6c8-f5badf801a2c",
+		"name": "BizzBuy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49883168",
+		"_collection_link": "https://strangelydone-2677374.postman.co/workspace/Strangely-Done's-Workspace~b1020996-d753-46bf-88d7-9a189619df55/collection/49883168-4c7e8f11-d004-488b-b6c8-f5badf801a2c?action=share&source=collection_link&creator=49883168"
+	},
+	"item": [
+		{
+			"name": "Auth (login/register)",
+			"item": [
+				{
+					"name": "create user (alice)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"alice\",\n  \"password\": \"alice123\",\n  \"email\": \"alice@example.com\",\n  \"fullName\": \"Alice Johnson\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auth/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user (bob)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"bob\",\n  \"password\": \"bob123\",\n  \"email\": \"bob@example.com\",\n  \"fullName\": \"Bob Smith\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auth/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create user (charlie)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"charlie\",\n  \"password\": \"charlie123\",\n  \"email\": \"charlie@example.com\",\n  \"fullName\": \"charlie pittsburg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auth/register",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login as alice",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();",
+									"",
+									"if(pm.response.code === 200)",
+									"    pm.environment.set(\"currentUser\", jsonData.username); ",
+									"",
+									"console.log(jsonData.username)"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"alice\",\n  \"password\": \"alice123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login as bob",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();",
+									"",
+									"if(pm.response.code === 200)",
+									"    pm.environment.set(\"currentUser\", jsonData.username); "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"bob\",\n  \"password\": \"bob123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login as charlie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();",
+									"",
+									"if(pm.response.code === 200)",
+									"    pm.environment.set(\"currentUser\", jsonData.username); ",
+									"",
+									"console.log(jsonData.username)"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"charlie\",\n  \"password\": \"charlie123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Profile",
+			"item": [
+				{
+					"name": "get profile",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-USER",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users/me",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"alice.odiyamma@bunttyy.in\",\n  \"fullName\": \"alice porter\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/users/me",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Wallet",
+			"item": [
+				{
+					"name": "get wallet",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/users/me/wallet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"wallet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add amount",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/users/me/wallet/add?amount=40000",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"wallet",
+								"add"
+							],
+							"query": [
+								{
+									"key": "amount",
+									"value": "40000"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Add Products",
+			"item": [
+				{
+					"name": "add laptop",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"MacBook Pro M3 16-inch\",\n    \"description\": \"Professional laptop with M3 Max chip, 36GB RAM, 1TB SSD\",\n    \"price\": 2499.99,\n    \"stockQuantity\": 8,\n    \"images\": [\"https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fappleinsider.com%2Farticles%2F23%2F11%2F13%2Fmacbook-pro-16-inch-m3-max-review-battery-powered-mac-pro-power&opi=89978449\"],\n    \"tags\": [\"electronics\", \"laptop\", \"apple\", \"professional\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add phone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"iPhone 15 Pro Max\",\n    \"description\": \"Latest flagship iPhone with titanium design and A17 Pro chip\",\n    \"price\": 1199.99,\n    \"stockQuantity\": 15,\n    \"images\": [\"https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Findianexpress.com%2Farticle%2Ftechnology%2Ftech-news-technology%2Fapple-iphone-15-pro-max-announced-price-8937146%2F&opi=89978449\"],\n    \"tags\": [\"electronics\", \"smartphone\", \"apple\", \"5G\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add earphones",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"AirPods Pro (3rd Gen)\",\n    \"description\": \"Active noise cancellation, adaptive audio, USB-C charging\",\n    \"price\": 249.99,\n    \"stockQuantity\": 30,\n    \"images\": [\"https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.gadgets360.com%2Faudio%2Fnews%2Fairpods-pro-3-third-gen-tws-earbuds-h3-chip-design-features-specifications-apple-report-4701891&opi=89978449\"],\n    \"tags\": [\"electronics\", \"audio\", \"wireless\", \"apple\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add tablet",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"iPad Air M2\",\n    \"description\": \"Powerful tablet with M2 chip and 11-inch Liquid Retina display\",\n    \"price\": 599.99,\n    \"stockQuantity\": 12,\n    \"images\": [\"https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.amazon.in%2FApple-iPad-Air-13%25E2%2580%25B3-Landscape%2Fdp%2FB0D3J9S14W&opi=89978449\"],\n    \"tags\": [\"electronics\", \"tablet\", \"apple\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add watch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Apple Watch Series 9\",\n    \"description\": \"Advanced health and fitness tracking with always-on display\",\n    \"price\": 399.99,\n    \"stockQuantity\": 20,\n    \"images\": [\"https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.imagineonline.store%2Fproducts%2Fapple-watch-series-9-sport-band-mrmd3hn-a%3Fsrsltid%3DAfmBOopOFHs_TVnHRKFJizO_oIVFStM6AbhC0GoJe0jJbAnmBw6KbpzB&opi=89978449\"],\n    \"tags\": [\"electronics\", \"wearable\", \"fitness\", \"apple\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add painting",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Starry Night\",\n    \"description\": \"This is Vincent van Gogh's iconic 1889 Post-Impressionist oil painting, depicting a vibrant, swirling night sky with a cypress tree and village, painted from his asylum window at Saint-Rémy-de-Provence.\",\n    \"price\": 1599.99,\n    \"stockQuantity\": 1,\n    \"images\": [\"https://i.ebayimg.com/images/g/bGMAAOSwje1kE44-/s-l1600.jpg\"],\n    \"tags\": [\"art\", \"painting\", \"decoration\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items/products",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update product qty (by id)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/items/1/stock?stock=25",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"1",
+								"stock"
+							],
+							"query": [
+								{
+									"key": "stock",
+									"value": "25"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "View Products",
+			"item": [
+				{
+					"name": "get all items",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/items",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "search based on keyword",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/items/search?keyword=pro",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "pro"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "filter based on price",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/items/filter?min=200&max=600",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "min",
+									"value": "200"
+								},
+								{
+									"key": "max",
+									"value": "600"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "filter based on seller",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/items/filter?sellerId=1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "sellerId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get product by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/items/2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"items",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "add product to cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": 1,\n    \"quantity\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/cart/add",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/cart/my-cart",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"my-cart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "remove cart item (by id)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/cart/remove/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"remove",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "checkout (place order)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/cart/checkout",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update cart item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": 3,\n    \"quantity\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/cart/update",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"cart",
+								"update"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Orders & Transactions",
+			"item": [
+				{
+					"name": "get all orders",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/users/me/orders",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get transactions",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/users/me/transactions",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"me",
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Auction",
+			"item": [
+				{
+					"name": "create auction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"itemId\": 6,\n    \"startingPrice\": 1599.99,\n    \"startTime\": \"2025-12-10T17:52:00\",\n    \"endTime\": \"2025-12-10T17:55:00\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/auctions/create",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auctions",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get active auctions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/auctions/active",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auctions",
+								"active"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get auction by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/auctions/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auctions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "close auction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/auctions/1/close",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"auctions",
+								"1",
+								"close"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bid",
+			"item": [
+				{
+					"name": "place bid",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n    \"auctionId\": 1,\n    \"amount\": 2100.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/bids/place",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"bids",
+								"place"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view bids of an auction",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/bids/auction/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"bids",
+								"auction",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "view my bids (all auctions)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/bids/my-bids",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"bids",
+								"my-bids"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "get all notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/notifications/my-notifications",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"my-notifications"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get unread notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/notifications/unread",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"unread"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get no of unread notif",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/notifications/unread-count",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"unread-count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mark a notification as read (by id)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/notifications/8/mark-read",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"8",
+								"mark-read"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mark all as read",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-user",
+								"value": "{{currentUser}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/api/notifications/mark-all-read",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"mark-all-read"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		}
+	]
+}

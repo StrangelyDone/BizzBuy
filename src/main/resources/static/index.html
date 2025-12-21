@@ -98,7 +98,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-white mt-12 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2024 BizzBuy. All rights reserved.</p>
+            <p class="text-sm">&copy; 2025 BizzBuy. All rights reserved.</p>
         </div>
     </footer>
 
@@ -194,10 +194,28 @@
                 try {
                     const products = await ProductsAPI.search(keyword);
                     const grid = document.getElementById('products-grid');
-                    if (products.length === 0) {
+
+                    // Filter out auction products
+                    const regularProducts = products.filter(product => !product.isAuction);
+
+                    if (regularProducts.length === 0) {
                         grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products found</div>';
                     } else {
-                        loadProducts();
+                        grid.innerHTML = regularProducts.slice(0, 10).map(product => `
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="bg-gray-100 h-40 rounded mb-3 flex items-center justify-center text-4xl">
+                                    🛍️
+                                </div>
+                                <h3 class="font-medium text-sm mb-2 line-clamp-2">${product.name}</h3>
+                                <div class="text-xl font-bold text-orange-600 mb-2">${formatCurrency(product.price)}</div>
+                                <div class="text-xs text-gray-600 mb-3">Stock: ${product.stockQuantity}</div>
+                                <button onclick="addToCart(${product.id})" 
+                                    ${product.stockQuantity === 0 ? 'disabled' : ''}
+                                    class="w-full ${product.stockQuantity === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500'} py-2 rounded font-medium transition">
+                                    ${product.stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+                                </button>
+                            </div>
+                        `).join('');
                     }
                 } catch (error) {
                     console.error('Search error:', error);
